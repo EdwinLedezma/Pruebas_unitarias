@@ -1,26 +1,23 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import java.net.URI;
+import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
-
     private final ProductoService service;
 
     public ProductoController(ProductoService service) {
@@ -28,19 +25,30 @@ public class ProductoController {
     }
 
     @GetMapping
-    public List<Producto> findAll() {
-        return service.findAll();
+    public List<ProductoRespuesta> findAll() {
+        return service.findAll().stream().map(ProductoRespuesta::desde).toList();
+    }
+
+    @GetMapping("/{id}")
+    public ProductoRespuesta findById(@PathVariable String id) {
+        return ProductoRespuesta.desde(service.findById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Producto create(@Valid @RequestBody CrearProducto solicitud) {
-        return service.create(solicitud.nombre(), solicitud.precio());
+    public ResponseEntity<ProductoRespuesta> create(@Valid @RequestBody ProductoSolicitud solicitud) {
+        Producto producto = service.create(solicitud);
+        return ResponseEntity.created(URI.create("/api/productos/" + producto.id())).body(ProductoRespuesta.desde(producto));
     }
 
-    public record CrearProducto(
-            @NotBlank @Size(max = 120) String nombre,
-            @NotNull @Positive @Digits(integer = 8, fraction = 2) BigDecimal precio
-    ) {
+    @PutMapping("/{id}")
+    public ProductoRespuesta update(@PathVariable String id, @Valid @RequestBody ProductoSolicitud solicitud) {
+        return ProductoRespuesta.desde(service.update(id, solicitud));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) {
+        service.delete(id);
     }
 }
