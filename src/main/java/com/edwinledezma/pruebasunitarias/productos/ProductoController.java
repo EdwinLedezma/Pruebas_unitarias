@@ -25,25 +25,25 @@ public class ProductoController {
     }
 
     @GetMapping
-    public List<Producto> findAll() {
-        return service.findAll();
+    public List<ProductoRespuesta> findAll() {
+        return service.findAll().stream().map(ProductoRespuesta::desde).toList();
     }
 
     @GetMapping("/{id}")
-    public Producto findById(@PathVariable String id) {
-        return service.findById(id);
+    public ProductoRespuesta findById(@PathVariable String id) {
+        return ProductoRespuesta.desde(service.findById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Producto> create(@Valid @RequestBody ProductoSolicitud solicitud) {
+    public ResponseEntity<ProductoRespuesta> create(@Valid @RequestBody ProductoSolicitud solicitud) {
         Producto producto = service.create(solicitud);
-        return ResponseEntity.created(URI.create("/api/productos/" + producto.id())).body(producto);
+        return ResponseEntity.created(URI.create("/api/productos/" + producto.id())).body(ProductoRespuesta.desde(producto));
     }
 
     @PutMapping("/{id}")
-    public Producto update(@PathVariable String id, @Valid @RequestBody ProductoSolicitud solicitud) {
-        return service.update(id, solicitud);
+    public ProductoRespuesta update(@PathVariable String id, @Valid @RequestBody ProductoSolicitud solicitud) {
+        return ProductoRespuesta.desde(service.update(id, solicitud));
     }
 
     @DeleteMapping("/{id}")
