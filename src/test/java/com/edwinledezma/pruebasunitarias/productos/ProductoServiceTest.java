@@ -1,44 +1,51 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
+import com.mongodb.client.result.DeleteResult;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.math.BigDecimal;
-import java.util.List;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductoServiceTest {
 
+    private static final ProductoSolicitud SOLICITUD =
+            new ProductoSolicitud("MON-01", "Monitor", new BigDecimal("149.99"));
+    private static final Producto NUEVO =
+            new Producto(null, SOLICITUD.sku(), SOLICITUD.nombre(), SOLICITUD.precio());
+    private static final Producto GUARDADO =
+            new Producto("id-1", SOLICITUD.sku(), SOLICITUD.nombre(), SOLICITUD.precio());
+
     @Mock
     private ProductoRepository repository;
+
+    @Mock
+    private MongoOperations mongo;
 
     @InjectMocks
     private ProductoService service;
 
     @Test
     void findAllDevuelveLosProductosDelRepositorio() {
-        Producto teclado = new Producto("Teclado", new BigDecimal("49.90"));
-        Producto raton = new Producto("Ratón", new BigDecimal("24.50"));
-        when(repository.findAll()).thenReturn(List.of(teclado, raton));
+        when(repository.findAll()).thenReturn(List.of(GUARDADO));
 
-        List<Producto> resultado = service.findAll();
-
-        assertThat(resultado)
-                .extracting(Producto::getNombre, Producto::getPrecio)
-                .containsExactly(tuple("Teclado", new BigDecimal("49.90")),
-                        tuple("Ratón", new BigDecimal("24.50")));
-        verify(repository).findAll();
+        assertThat(service.findAll()).containsExactly(GUARDADO);
     }
 
     @Test
@@ -46,28 +53,63 @@ class ProductoServiceTest {
         when(repository.findAll()).thenReturn(List.of());
 
         assertThat(service.findAll()).isEmpty();
-        verify(repository).findAll();
     }
 
     @Test
-    void createGuardaLosAtributosYDevuelveElProductoConId() {
-        String nombre = "Monitor";
-        BigDecimal precio = new BigDecimal("149.99");
-        Producto guardado = new Producto(nombre, precio);
-        ReflectionTestUtils.setField(guardado, "id", 42L);
-        when(repository.save(any(Producto.class))).thenReturn(guardado);
+    void findByIdDevuelveElProductoExistente() {
+        when(repository.findById(GUARDADO.id())).thenReturn(Optional.of(GUARDADO));
 
-        Producto resultado = service.create(nombre, precio);
+        assertThat(service.findById(GUARDADO.id())).isEqualTo(GUARDADO);
+    }
 
-        ArgumentCaptor<Producto> captor = ArgumentCaptor.forClass(Producto.class);
-        verify(repository).save(captor.capture());
-        Producto enviado = captor.getValue();
-        assertThat(enviado.getId()).isNull();
-        assertThat(enviado.getNombre()).isEqualTo(nombre);
-        assertThat(enviado.getPrecio()).isEqualByComparingTo(precio);
+    @Test
+    void findByIdInformaSiElProductoNoExiste() {
+        when(repository.findById("ausente")).thenReturn(Optional.empty());
 
-        assertThat(resultado.getId()).isEqualTo(42L);
-        assertThat(resultado.getNombre()).isEqualTo(nombre);
-        assertThat(resultado.getPrecio()).isEqualByComparingTo(precio);
+        assertThatThrownBy(() -> service.findById("ausente"))
+                .isInstanceOf(ProductoNoEncontradoException.class).hasMessageContaining("ausente");
+    }
+
+    @Test
+    void createInsertaLosAtributosYDevuelveElProductoConId() {
+        when(repository.insert(NUEVO)).thenReturn(GUARDADO);
+
+        assertThat(service.create(SOLICITUD)).isEqualTo(GUARDADO);
+        verify(repository).insert(NUEVO);
+    }
+
+    @Test
+    void createTraduceLaClaveDuplicada() {
+        var error = new DuplicateKeyException("sku");
+        when(repository.insert(NUEVO)).thenThrow(error);
+
+        assertThatThrownBy(() -> service.create(SOLICITUD))
+                .isInstanceOf(SkuDuplicadoException.class)
+                .hasMessageContaining(SOLICITUD.sku())
+                .hasCause(error);
+    }
+
+    @Test
+    void updateInformaSiElProductoNoExiste() {
+        assertThatThrownBy(() -> service.update("ausente", SOLICITUD))
+                .isInstanceOf(ProductoNoEncontradoException.class).hasMessageContaining("ausente");
+    }
+
+    @Test
+    void updateTraduceLaClaveDuplicada() {
+        when(mongo.findAndModify(any(Query.class), any(UpdateDefinition.class),
+                any(FindAndModifyOptions.class), eq(Producto.class)))
+                .thenThrow(new DuplicateKeyException("sku"));
+
+        assertThatThrownBy(() -> service.update(GUARDADO.id(), SOLICITUD))
+                .isInstanceOf(SkuDuplicadoException.class).hasMessageContaining(SOLICITUD.sku());
+    }
+
+    @Test
+    void deleteInformaSiNoSeEliminoNingunDocumento() {
+        when(mongo.remove(any(Query.class), eq(Producto.class))).thenReturn(DeleteResult.acknowledged(0));
+
+        assertThatThrownBy(() -> service.delete("ausente"))
+                .isInstanceOf(ProductoNoEncontradoException.class).hasMessageContaining("ausente");
     }
 }
