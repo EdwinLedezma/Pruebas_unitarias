@@ -35,6 +35,7 @@ public class ProductoController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Producto> create(@Valid @RequestBody ProductoSolicitud solicitud) {
         Producto producto = service.create(solicitud);
         return ResponseEntity.created(URI.create("/api/productos/" + producto.id())).body(producto);
