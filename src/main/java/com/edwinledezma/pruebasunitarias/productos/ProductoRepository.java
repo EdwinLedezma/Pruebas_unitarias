@@ -1,6 +1,6 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ProductoRepository extends JpaRepository<Producto, Long> {
+public interface ProductoRepository extends MongoRepository<Producto, String> {
 }
