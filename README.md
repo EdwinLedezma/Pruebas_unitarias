@@ -62,7 +62,7 @@ Para ejecutar el control local con SpotBugs, Find Security Bugs y PMD:
 mvn -Pquality-local clean verify
 ```
 
-El perfil falla si los analizadores reportan hallazgos. El filtro de SpotBugs se limita al inventario de rutas del controlador y a la inyección por constructor de Spring. Maven genera `target/spotbugsXml.xml` y `target/site/pmd.html`.
+El perfil falla si los analizadores reportan hallazgos. El filtro de SpotBugs se limita al inventario de rutas del controlador y a la inyección por constructor de Spring. Maven genera `target/spotbugsXml.xml` y `target/reports/pmd.html`.
 
 ## Historial y evidencias
 
