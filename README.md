@@ -56,8 +56,18 @@ mvn clean verify sonar:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.q
 
 El escáner importa la cobertura de JaCoCo y Maven espera el resultado del Quality Gate. Consulta el proyecto `pruebas-unitarias` en SonarQube para revisar los hallazgos.
 
+Para ejecutar el control local con SpotBugs, Find Security Bugs y PMD:
+
+```bash
+mvn -Pquality-local clean verify
+```
+
+El perfil falla si los analizadores reportan hallazgos. El filtro de SpotBugs se limita al inventario de rutas del controlador y a la inyección por constructor de Spring. Maven genera `target/spotbugsXml.xml` y `target/site/pmd.html`.
+
 ## Historial y evidencias
 
 Los cambios entran por PR desde `feature/*` hacia `dev` y se promueven mediante un segundo PR a `master`. Los mensajes siguen el formato `Add<back>:` o `Update<back>:`.
+
+El [reporte técnico de la HU-01](evidencia/HU-01-reporte-tecnico.pdf) incluye capturas de Swagger, Maven, JaCoCo y el análisis estático local.
 
 La [captura de la práctica anterior](evidencia/mvn-test.jpg) corresponde a la versión inicial con H2.
