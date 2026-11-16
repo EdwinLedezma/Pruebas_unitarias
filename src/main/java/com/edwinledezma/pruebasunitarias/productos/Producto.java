@@ -1,43 +1,17 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
 import java.math.BigDecimal;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
-@Entity
-public class Producto {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, length = 120)
-    private String nombre;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precio;
-
-    protected Producto() {
-    }
-
-    public Producto(String nombre, BigDecimal precio) {
-        this.nombre = nombre;
-        this.precio = precio;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public BigDecimal getPrecio() {
-        return precio;
-    }
+@Document("productos")
+public record Producto(
+        @Id String id,
+        @Indexed(unique = true) String sku,
+        String nombre,
+        @Field(targetType = FieldType.DECIMAL128) BigDecimal precio
+) {
 }

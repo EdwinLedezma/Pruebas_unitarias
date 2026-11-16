@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- El detector enumera los endpoints de este controlador. -->
+    <Match>
+        <Class name="com.edwinledezma.pruebasunitarias.productos.ProductoController"/>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+    <!-- Spring administra las dependencias inyectadas por constructor. -->
+    <Match>
+        <Or>
+            <Class name="com.edwinledezma.pruebasunitarias.productos.ProductoController"/>
+            <Class name="com.edwinledezma.pruebasunitarias.productos.ProductoService"/>
+        </Or>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>
