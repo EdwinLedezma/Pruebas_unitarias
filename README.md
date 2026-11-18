@@ -8,7 +8,8 @@ Requiere Java 17 o superior, Maven 3.6.3 o superior y MongoDB. Con Docker Compos
 
 ```bash
 docker compose up -d mongodb
-mvn spring-boot:run
+# Define las credenciales como se indica abajo antes de ejecutar Maven.
+mvn spring-boot:run "-Dspring-boot.run.arguments=--server.address=127.0.0.1"
 ```
 
 También puedes usar una instancia local de MongoDB 8.0. Define `MONGODB_URI` para cambiar la cadena de conexión. El valor predeterminado apunta a `mongodb://127.0.0.1:27017/productos`. Para el laboratorio, Compose publica los puertos solo en la interfaz local.
@@ -31,6 +32,24 @@ POST y PUT reciben el mismo cuerpo. El SKU admite de 1 a 32 caracteres en mayús
 
 Los errores usan `application/problem+json`. El código `400` corresponde a JSON o campos inválidos, `404` a un producto inexistente, `409` a un SKU duplicado y `503` a un fallo de acceso a la base de datos.
 
+## Autenticación y permisos
+
+Antes de iniciar la aplicación, configura contraseñas distintas para `lector` y `editor`. Cada una debe tener al menos 16 caracteres y como máximo 72 bytes en UTF-8. En PowerShell 7 puedes introducirlas sin mostrarlas en consola:
+
+```powershell
+$env:APP_AUTH_LECTOR_PASSWORD = Read-Host "Contraseña de lector" -MaskInput
+$env:APP_AUTH_EDITOR_PASSWORD = Read-Host "Contraseña de editor" -MaskInput
+```
+
+El servidor verifica las contraseñas con BCrypt. En Swagger ejecuta `POST /api/auth/login` con los campos `usuario` y `password`. Copia el `access_token` a **Authorize**. Para solicitudes fuera de Swagger, usa el encabezado `Authorization: Bearer <token>`.
+
+| Cuenta | Permisos |
+| --- | --- |
+| `lector` | GET en rutas de productos. |
+| `editor` | GET, POST, PUT y DELETE en rutas de productos. |
+
+La API devuelve `401` si faltan credenciales o el token es inválido o venció. Devuelve `403` si el JWT es válido y el rol carece del permiso requerido. El token vence en 15 minutos. Para obtener uno nuevo, repite el login. La clave de firma se genera al iniciar el proceso, por lo que el reinicio invalida los tokens anteriores. Usa HTTPS fuera del laboratorio local y evita almacenar contraseñas o JWT en el repositorio.
+
 ## Pruebas y cobertura
 
 ```bash
@@ -38,7 +57,7 @@ mvn test
 mvn clean verify
 ```
 
-`mvn test` ejecuta las pruebas unitarias con Mockito. `mvn clean verify` ejecuta además las pruebas HTTP contra una instancia real de MongoDB y exige al menos 80 % de líneas y ramas con JaCoCo. El reporte HTML se genera en `target/site/jacoco/index.html`.
+`mvn test` ejecuta las pruebas unitarias con Mockito y las pruebas del filtro HTTP de autenticación con MockMvc. `mvn clean verify` ejecuta además las pruebas HTTP contra una instancia real de MongoDB y exige al menos 80 % de líneas y ramas con JaCoCo. El reporte HTML se genera en `target/site/jacoco/index.html`.
 
 Las pruebas de integración usan una base temporal con un nombre aleatorio y la eliminan al finalizar. Usa `MONGODB_TEST_URI` para indicar la instancia de pruebas. El URI predeterminado apunta a localhost y la cuenta necesita permisos para crear y eliminar la base temporal.
 
@@ -66,7 +85,7 @@ El perfil falla si los analizadores reportan hallazgos. El filtro de SpotBugs se
 
 ## Historial y evidencias
 
-Los cambios entran por PR desde `feature/*` hacia `dev` y se promueven mediante un segundo PR a `master`. Los mensajes siguen el formato `Add<back>:` o `Update<back>:`.
+Los cambios entran por PR desde `feature/*` hacia `dev` y se promueven mediante un segundo PR a `master`. Los mensajes siguen el formato `Add<backend>:`, `Change<backend>:`, `Fix<backend>:` o `Update<backend>:` para cambios del backend..
 
 El [reporte técnico de la HU-01](evidencia/HU-01-reporte-tecnico.pdf) incluye capturas de Swagger, Maven, JaCoCo y el análisis estático local.
 

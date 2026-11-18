@@ -1,11 +1,15 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
+import com.edwinledezma.pruebasunitarias.seguridad.UsuariosDePrueba;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,9 +41,23 @@ class ProductoApiIT {
 
     @DynamicPropertySource
     static void mongoProperties(DynamicPropertyRegistry properties) {
+        UsuariosDePrueba.registrar(properties);
         properties.add("spring.data.mongodb.uri", () -> System.getenv().getOrDefault(
                 "MONGODB_TEST_URI", "mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=5000"));
         properties.add("spring.data.mongodb.database", () -> DB);
+    }
+
+    @BeforeEach
+    void autenticarEditor() {
+        http.getRestTemplate().setInterceptors(List.of());
+        var login = http.postForEntity("/api/auth/login",
+                Map.of("usuario", "editor", "password", UsuariosDePrueba.EDITOR), JsonNode.class);
+        assertThat(login.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String token = login.getBody().path("access_token").asText();
+        http.getRestTemplate().setInterceptors(List.of((request, body, execution) -> {
+            request.getHeaders().setBearerAuth(token);
+            return execution.execute(request, body);
+        }));
     }
 
     @AfterAll
