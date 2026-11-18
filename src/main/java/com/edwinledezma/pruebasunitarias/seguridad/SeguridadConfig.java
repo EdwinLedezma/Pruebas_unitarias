@@ -25,6 +25,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 class SeguridadConfig {
 
+    static final int MAX_PASSWORD_BYTES = 72;
+    private static final String ROL_EDITOR = "EDITOR";
     private static final String PRODUCTOS = "/api/productos/**";
 
     @Bean
@@ -42,10 +44,10 @@ class SeguridadConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, PRODUCTOS).hasAnyRole("LECTOR", "EDITOR")
-                        .requestMatchers(HttpMethod.POST, PRODUCTOS).hasRole("EDITOR")
-                        .requestMatchers(HttpMethod.PUT, PRODUCTOS).hasRole("EDITOR")
-                        .requestMatchers(HttpMethod.DELETE, PRODUCTOS).hasRole("EDITOR")
+                        .requestMatchers(HttpMethod.GET, PRODUCTOS).hasAnyRole("LECTOR", ROL_EDITOR)
+                        .requestMatchers(HttpMethod.POST, PRODUCTOS).hasRole(ROL_EDITOR)
+                        .requestMatchers(HttpMethod.PUT, PRODUCTOS).hasRole(ROL_EDITOR)
+                        .requestMatchers(HttpMethod.DELETE, PRODUCTOS).hasRole(ROL_EDITOR)
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
                 .build();
@@ -63,14 +65,14 @@ class SeguridadConfig {
         var encoder = new BCryptPasswordEncoder(12);
         var usuarios = new InMemoryUserDetailsManager(
                 User.withUsername("lector").password(encoder.encode(lector)).roles("LECTOR").build(),
-                User.withUsername("editor").password(encoder.encode(editor)).roles("EDITOR").build());
+                User.withUsername("editor").password(encoder.encode(editor)).roles(ROL_EDITOR).build());
         var provider = new DaoAuthenticationProvider(usuarios);
         provider.setPasswordEncoder(encoder);
         return new ProviderManager(provider);
     }
 
     private static void validarPassword(String password) {
-        if (password.isBlank() || password.length() < 16 || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+        if (password.isBlank() || password.length() < 16 || password.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
             throw new IllegalArgumentException("Cada contraseña debe tener al menos 16 caracteres y hasta 72 bytes UTF-8.");
         }
     }

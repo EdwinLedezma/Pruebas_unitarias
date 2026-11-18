@@ -37,7 +37,7 @@ class AuthController {
 
     @PostMapping("/login")
     ResponseEntity<TokenRespuesta> login(@Valid @RequestBody LoginSolicitud solicitud) {
-        if (solicitud.password().getBytes(StandardCharsets.UTF_8).length > 72) {
+        if (solicitud.password().getBytes(StandardCharsets.UTF_8).length > SeguridadConfig.MAX_PASSWORD_BYTES) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         try {
@@ -65,7 +65,7 @@ class AuthController {
     }
 
     record LoginSolicitud(@NotBlank @Size(max = 32) String usuario,
-                          @NotBlank @Size(max = 72) String password) {
+                          @NotBlank @Size(max = SeguridadConfig.MAX_PASSWORD_BYTES) String password) {
     }
 
     record TokenRespuesta(@JsonProperty("access_token") String accessToken,
