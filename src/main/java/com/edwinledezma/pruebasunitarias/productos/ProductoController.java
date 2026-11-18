@@ -1,5 +1,6 @@
 package com.edwinledezma.pruebasunitarias.productos;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/productos")
 public class ProductoController {
     private final ProductoService service;
