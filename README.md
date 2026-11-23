@@ -90,3 +90,26 @@ Los cambios entran por PR desde `feature/*` hacia `dev` y se promueven mediante 
 El [reporte técnico de la HU-01](evidencia/HU-01-reporte-tecnico.pdf) incluye capturas de Swagger, Maven, JaCoCo y el análisis estático local.
 
 La [captura de la práctica anterior](evidencia/mvn-test.jpg) corresponde a la versión inicial con H2.
+
+## Despliegue en Render y MongoDB Atlas
+
+El Dockerfile compila el proyecto con Maven y ejecuta las pruebas unitarias y de filtros HTTP. La imagen final contiene Java 17 y el JAR, y ejecuta la API con un usuario sin privilegios de root.
+
+Render construye la imagen desde la rama master y proporciona un subdominio onrender.com con HTTPS administrado. El archivo render.yaml describe el servicio Free en Oregon, el puerto 10000 y la comprobación de salud en /v3/api-docs. El despliegue automático está desactivado para publicar versiones verificadas mediante el panel.
+
+Configura estas variables en el servicio de Render:
+
+| Variable | Configuración |
+| --- | --- |
+| SERVER_PORT | 10000 |
+| SERVER_FORWARD_HEADERS_STRATEGY | framework |
+| JAVA_TOOL_OPTIONS | -XX:MaxRAMPercentage=50.0 |
+| MONGODB_URI | URI de Atlas con la base productos y conexión TLS mongodb+srv. |
+| APP_AUTH_LECTOR_PASSWORD | Contraseña exclusiva de al menos 16 caracteres y hasta 72 bytes UTF-8. |
+| APP_AUTH_EDITOR_PASSWORD | Otra contraseña exclusiva con los mismos límites. |
+
+En Atlas, crea un usuario con readWrite solo sobre productos y autoriza los rangos de salida que Render muestra en Connect → Outbound. Las credenciales se guardan en la configuración de Render.
+
+La base persiste en Atlas. El sistema de archivos del contenedor de Render es efímero. El plan gratuito suspende la API tras un período de inactividad y puede tardar en reactivarla. Cada reinicio cambia la clave de firma del laboratorio, por lo que los clientes deben volver a iniciar sesión.
+
+Para comprobar el despliegue, abre https://TU-SERVICIO.onrender.com/swagger-ui/index.html, ejecuta el login y comprueba el CRUD con editor. Una consulta protegida sin token debe devolver 401. Revisa también el historial de despliegues de Render y el certificado HTTPS del dominio.
