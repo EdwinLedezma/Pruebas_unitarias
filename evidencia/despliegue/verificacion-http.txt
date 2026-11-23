@@ -1,0 +1,7 @@
+Login editor por Swagger: 200
+POST producto por Swagger: 201
+OpenAPI: 200
+GET producto persistido: 200 {"id":"6b03de57c9db96e7c63355d3","sku":"RENDER-U4-001","nombre":"Producto de evidencia Unidad 4","precio":199.9}
+GET lista autenticada: 200 [{"id":"6b03de57c9db96e7c63355d3","sku":"RENDER-U4-001","nombre":"Producto de evidencia Unidad 4","precio":199.9}]
+Proteccion sin credenciales: 401 (verificado con curl)
+Proteccion (Bearer token-invalido): 401

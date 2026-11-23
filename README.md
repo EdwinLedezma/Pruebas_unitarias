@@ -112,4 +112,6 @@ En Atlas, crea un usuario con readWrite solo sobre productos y autoriza los rang
 
 La base persiste en Atlas. El sistema de archivos del contenedor de Render es efímero. El plan gratuito suspende la API tras un período de inactividad y puede tardar en reactivarla. Cada reinicio cambia la clave de firma del laboratorio, por lo que los clientes deben volver a iniciar sesión.
 
-Para comprobar el despliegue, abre https://TU-SERVICIO.onrender.com/swagger-ui/index.html, ejecuta el login y comprueba el CRUD con editor. Una consulta protegida sin token debe devolver 401. Revisa también el historial de despliegues de Render y el certificado HTTPS del dominio.
+Para comprobar el despliegue, abre https://pruebas-unitarias-5pbq.onrender.com/swagger-ui/index.html, ejecuta el login y comprueba el CRUD con editor. Una consulta protegida sin token debe devolver 401. Revisa también el historial de despliegues de Render y el certificado HTTPS del dominio.
+
+El [reporte de despliegue en Word](evidencia/despliegue/Reporte-despliegue-Pruebas_unitarias.docx) documenta Docker, Render, Atlas, dominio, TLS y la solución del fallo de conexión. Las capturas y la [bitácora HTTP](evidencia/despliegue/verificacion-http.txt) registran las verificaciones del servicio publicado.
