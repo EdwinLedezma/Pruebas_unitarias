@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: pruebas-unitarias
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: master
+    autoDeployTrigger: "off"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SERVER_FORWARD_HEADERS_STRATEGY
+        value: framework
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=50.0
+      - key: MONGODB_URI
+        sync: false
+      - key: APP_AUTH_LECTOR_PASSWORD
+        generateValue: true
+      - key: APP_AUTH_EDITOR_PASSWORD
+        generateValue: true
