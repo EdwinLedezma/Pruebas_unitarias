@@ -1,0 +1,44 @@
+{
+  "hostname": "pruebas-unitarias-5pbq.onrender.com",
+  "tls_version": "TLSv1.3",
+  "subject": [
+    [
+      [
+        "commonName",
+        "onrender.com"
+      ]
+    ]
+  ],
+  "issuer": [
+    [
+      [
+        "countryName",
+        "US"
+      ]
+    ],
+    [
+      [
+        "organizationName",
+        "Google Trust Services"
+      ]
+    ],
+    [
+      [
+        "commonName",
+        "WE1"
+      ]
+    ]
+  ],
+  "notBefore": "Nov 19 21:53:13 2026 GMT",
+  "notAfter": "Feb 17 22:53:10 2027 GMT",
+  "subjectAltName": [
+    [
+      "DNS",
+      "onrender.com"
+    ],
+    [
+      "DNS",
+      "*.onrender.com"
+    ]
+  ]
+}
