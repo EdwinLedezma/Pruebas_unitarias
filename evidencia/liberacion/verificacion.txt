@@ -1,0 +1,11 @@
+Verificacion de liberacion, 27 de noviembre de 2026
+Servicio: https://pruebas-unitarias-5pbq.onrender.com
+Version ejecutada observada en Render: 4fd7bdf (master)
+OpenAPI: HTTP 200
+Login lector: HTTP 200
+GET /api/productos con lector: HTTP 200
+Producto recuperado: SKU RENDER-U4-001, id 6b03de57c9db96e7c63355d3
+POST /api/productos con lector: HTTP 403, denegado por permisos
+Sin credenciales: HTTP 401 observado en Swagger
+La captura no contiene contrasenas ni tokens.
+Las credenciales se entregan en una hoja privada fuera del repositorio.
